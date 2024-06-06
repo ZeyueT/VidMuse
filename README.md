@@ -23,8 +23,8 @@ Furthermore, we propose VidMuse, a simple framework for generating music aligned
 ![method](https://github.com/ZeyueT/VidMuse/assets/126848881/25c54387-2136-4d61-956c-abf07146bea6)
 **Overview of the VidMuse Framework.**
 
-## ⚙️ Code 
-Our code will come soon.
+## ⚙️ Code & Datasets
+Our code and datasets will come soon.
 
 
 <hr>
