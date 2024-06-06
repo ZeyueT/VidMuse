@@ -1,4 +1,4 @@
-# VidMuse: A Simple Video-to-Music Generation Framework with Long-Short-Term Modeling 🎵
+# VidMuse: A Simple Video-to-Music Generation Framework with Long-Short-Term Modeling 🎶
 
 
 
