@@ -2,7 +2,7 @@
 
 
 
-**This is the official repository for "[VidMuse: A Simple Video-to-Music Generation Framework with Long-Short-Term Modeling](xxxxxxxxx)".** 
+**This is the official repository for "[VidMuse: A Simple Video-to-Music Generation Framework with Long-Short-Term Modeling](https://arxiv.org/pdf/2406.04321)".** 
 
 
 ## 📺 Demo Video
@@ -26,5 +26,15 @@ Furthermore, we propose VidMuse, a simple framework for generating music aligned
 ## ⚙️ Code & Datasets
 Our code and datasets will come soon.
 
+## 🤗 Citation
+
+```
+@article{tian2024vidmuse,
+  title={VidMuse: A Simple Video-to-Music Generation Framework with Long-Short-Term Modeling},
+  author={Tian, Zeyue and Liu, Zhaoyang and Yuan, Ruibin and Pan, Jiahao and Huang, Xiaoqiang and Liu, Qifeng and Tan, Xu and Chen, Qifeng and Xue, Wei and Guo, Yike},
+  journal={arXiv preprint arXiv:2406.04321},
+  year={2024}
+}
+```
 
 <hr>
