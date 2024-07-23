@@ -1,6 +1,6 @@
 # VidMuse: A Simple Video-to-Music Generation Framework with Long-Short-Term Modeling 🎶
 
-[![arXiv](https://img.shields.io/badge/arXiv-2406.04321-brightgreen.svg?style=flat-square)](https://arxiv.org/pdf/2406.04321)  [![githubio](https://img.shields.io/badge/GitHub.io-Project page-blue?logo=Github&style=flat-square)](https://vidmuse.github.io/)
+[![arXiv](https://img.shields.io/badge/arXiv-2406.04321-brightgreen.svg?style=flat-square)](https://arxiv.org/pdf/2406.04321)   [![githubio](https://img.shields.io/badge/GitHub.io-Project-blue?logo=Github&style=flat-square)](https://vidmuse.github.io/)
 
 **This is the official repository for "[VidMuse: A Simple Video-to-Music Generation Framework with Long-Short-Term Modeling](https://arxiv.org/pdf/2406.04321)".** 
 
