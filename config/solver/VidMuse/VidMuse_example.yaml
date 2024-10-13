@@ -1,0 +1,95 @@
+# @package __global__
+
+# This is the training loop solver
+# for the base MusicGen model (text-to-music)
+# on monophonic audio sampled at 32 kHz
+defaults:
+  - VidMuse/default
+  - /model: lm/musicgen_lm
+  - override /dset: audio/default
+  - _self_
+
+autocast: true
+autocast_dtype: float16
+
+
+compression_model_checkpoint: //pretrained/facebook/encodec_32khz
+
+
+channels: 1
+sample_rate: 32000
+
+deadlock:
+  use: true  # deadlock detection
+
+dataset:
+  batch_size: 1
+  segment_duration: 30
+  sample_on_weight: false  # Uniform sampling all the way
+  sample_on_duration: false  # Uniform sampling all the way
+  valid:
+    num_samples: 1 # valid sample number
+  generate:
+    num_samples: 1
+
+video:
+  visual_encoder: clip # videomae
+  video_fps: 2
+  video_overlap: 0
+  add_global:
+    if_add_gobal: true
+    global_feature_path: ''
+    mode: 'average'
+    num_frames: 64
+
+datasource:
+  max_sample_rate: 44100
+  max_channels: 2
+
+  train: egs/V2M/example
+  valid: egs/V2M/example
+  evaluate: egs/V2M/example
+  generate: egs/V2M/example
+
+generate:
+  lm:
+    use_sampling: true
+    top_k: 250
+    top_p: 0.0
+  every: 
+    100
+
+evaluate:
+  every: 
+    1
+
+optim:
+  epochs: 10
+  updates_per_epoch: 10
+  optimizer: adamw
+  lr: 35e-6
+  ema:
+    use: true         # whether to use EMA or not
+    updates: 10        # update at every step
+    device: cuda # device for EMA, can be put on GPU if more frequent updates
+    decay: 0.99       # EMA decay value, if null, no EMA is used
+  adam:
+    betas: [0.9, 0.95]
+    weight_decay: 0.1
+    eps: 1e-8
+
+logging:
+  log_tensorboard: true
+
+schedule:
+  lr_scheduler: cosine
+  cosine:
+    warmup: 4000
+    lr_min_ratio: 0.0
+    cycle_length: 1.0
+
+checkpoint:
+  save_last: true
+  save_every: 1
+  keep_last: 1
+  keep_every_states: null

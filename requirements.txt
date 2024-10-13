@@ -1,0 +1,11 @@
+decord 
+chardet 
+imageio
+wandb
+tensorboard
+timm
+webdataset
+ftfy
+moviepy
+h5py
+pydub
