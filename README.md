@@ -102,8 +102,8 @@ If you find our work useful, please consider citing:
 
 ```
 @article{tian2024vidmuse,
-  title={VidMuse: A Simple Video-to-Music Generation Framework with Long-Short-Term Modeling},
-  author={Tian, Zeyue and Liu, Zhaoyang and Yuan, Ruibin and Pan, Jiahao and Huang, Xiaoqiang and Liu, Qifeng and Tan, Xu and Chen, Qifeng and Xue, Wei and Guo, Yike},
+  title={Vidmuse: A simple video-to-music generation framework with long-short-term modeling},
+  author={Tian, Zeyue and Liu, Zhaoyang and Yuan, Ruibin and Pan, Jiahao and Liu, Qifeng and Tan, Xu and Chen, Qifeng and Xue, Wei and Guo, Yike},
   journal={arXiv preprint arXiv:2406.04321},
   year={2024}
 }
