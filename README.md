@@ -88,6 +88,40 @@ Furthermore, we propose VidMuse, a simple framework for generating music aligned
   bash train.sh
   ```
 
+## 📥 Importing / Exporting models
+
+- To export the trained model, use the following script:
+  
+  ```python
+  import os
+  import torch
+  from audiocraft.utils import export
+  from audiocraft import train
+
+  # Define codec_model
+  codec_model = 'facebook/encodec_32khz'
+  xp = train.main.get_xp_from_sig('SIG')
+
+  model_save_path = './model'
+
+  # Export model
+  export.export_lm(xp.folder / 'checkpoint.th', model_save_path + '/state_dict.bin')
+  export.export_pretrained_compression_model(codec_model, model_save_path + '/compression_state_dict.bin')
+  ```
+
+## 🎯 Infer
+
+- Before running the inference script, make sure to define the following parameters in `infer.sh`:
+  - `model_path`: Path to the model directory. This is where the model files are stored. Default is `'./model'`.
+  - `video_dir`: Directory containing the videos for inference. This is where the input videos are located. Default is `'./dataset/example/infer'`.
+  - `output_dir`: Directory where the output generated music will be saved. Default is `'./result/'`.
+
+- Run the inference using the following script:
+
+  ```bash
+  bash infer.sh
+  ```
+
 ## 🧱 Dataset & Dataset Construction
 
 - To be released...

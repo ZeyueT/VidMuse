@@ -67,7 +67,7 @@ def export_lm(checkpoint_path: tp.Union[Path, str], out_file: tp.Union[Path, str
     else:
         assert pkg['best_state']
         best_state = pkg['best_state']['model']
-
+    model=pkg['model']
     new_pkg = {
         'best_state': model,
         'xp.cfg': OmegaConf.to_yaml(pkg['xp.cfg']),
