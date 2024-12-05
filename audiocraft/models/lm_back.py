@@ -36,9 +36,11 @@ import einops
 from .transformer_module import Attention, PreNorm, FeedForward
 from transformers import AutoProcessor, CLIPVisionModelWithProjection, VideoMAEModel
 
+
 logger = logging.getLogger(__name__)
 ConditionTensors = tp.Dict[str, ConditionType]
 CFGConditions = tp.Union[ConditionTensors, tp.Tuple[ConditionTensors, ConditionTensors]]
+
 
 def get_init_fn(method: str, input_dim: int, init_depth: tp.Optional[int] = None):
     """LM layer initialization.
@@ -62,7 +64,7 @@ def get_init_fn(method: str, input_dim: int, init_depth: tp.Optional[int] = None
             torch.nn.init.trunc_normal_, mean=0.0, std=std, a=-3 * std, b=3 * std
         )
     elif method == 'uniform':
-        bound = math.sqrt(3) * std  # ensure the standard deviation is std
+        bound = math.sqrt(3) * std  # ensure the standard deviation is `std`
         return partial(torch.nn.init.uniform_, a=-bound, b=bound)
     else:
         raise ValueError("Unsupported layer initialization method")
@@ -72,7 +74,7 @@ def init_layer(m: nn.Module,
                method: str,
                init_depth: tp.Optional[int] = None,
                zero_bias_init: bool = False):
-    """Wrapper around `get_init_fn for proper initialization of LM modules.
+    """Wrapper around ``get_init_fn`` for proper initialization of LM modules.
 
     Args:
         m (nn.Module): Module to initialize.
@@ -102,7 +104,7 @@ def init_layer(m: nn.Module,
 
 
 class ScaledEmbedding(nn.Embedding):
-    """Boost learning rate for embeddings (with scale).
+    """Boost learning rate for embeddings (with `scale`).
     """
     def __init__(self, *args, lr=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -122,7 +124,6 @@ class LMOutput:
     logits: torch.Tensor  # [B, K, T, card]
     mask: torch.Tensor  # [B, K, T]
 
-
 class Transformer(nn.Module):
     def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout = 0.):
         super().__init__()
@@ -139,7 +140,6 @@ class Transformer(nn.Module):
             x = attn(x) + x
             x = ff(x) + x
         return self.norm(x)
-
 
 class MultiHeadCrossAttention(nn.Module):
     def __init__(self, x1, num_heads):
@@ -238,9 +238,9 @@ class LMModel(StreamingModule):
         self.cfg_dropout = ClassifierFreeGuidanceDropout(p=cfg_dropout)
         self.att_dropout = AttributeDropout(p=attribute_dropout)
         self.condition_provider = condition_provider
-        self.visual_encoder = visual_encoder
-        self.if_add_gobal = if_add_gobal
-        self.temporal_dim = temporal_dim
+        self.visual_encoder=visual_encoder
+        self.if_add_gobal=if_add_gobal
+        self.temporal_dim=temporal_dim
         
         self.fuser = fuser
         self.card = card
@@ -265,7 +265,7 @@ class LMModel(StreamingModule):
         self._fsdp: tp.Optional[nn.Module]
         self.__dict__['_fsdp'] = None
         
-        if self.visual_encoder == 'clip':
+        if self.visual_encoder=='clip':
             self.visual_encoder_model = CLIPVisionModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
             self.processor = AutoProcessor.from_pretrained("openai/clip-vit-base-patch32")
                              
@@ -274,8 +274,8 @@ class LMModel(StreamingModule):
             print(f'please input the right video encoder.')
             exit()
         
-        if self.visual_encoder == 'clip':
-            temporal_dim = 768 
+        if self.visual_encoder=='clip':
+            temporal_dim=768 
             self.local_pos_embedding = nn.Parameter(torch.randn(1, 50, temporal_dim))
             self.visual_encoder_model = self.visual_encoder_model.eval()
             for param in self.visual_encoder_model.parameters():
@@ -284,7 +284,7 @@ class LMModel(StreamingModule):
         self.local_temporal_transformer = Transformer(temporal_dim, depth, num_heads, dim_head, temporal_dim*hidden_scale, 0.) # [768, 4, 16, 64, 768*4]
 
         if self.if_add_gobal:
-            if self.visual_encoder == 'clip':
+            if self.visual_encoder=='clip':
                 self.global_pos_embedding = nn.Parameter(torch.randn(1, 50, temporal_dim))
 
             self.global_temporal_transformer = Transformer(temporal_dim, depth, num_heads, dim_head, temporal_dim*hidden_scale, 0.) # [768, 4, 16, 64, 768*4]
@@ -299,7 +299,7 @@ class LMModel(StreamingModule):
         """Initialization of the transformer module weights.
 
         Args:
-            weight_init (str, optional): Weight initialization strategy. See `get_init_fn for valid options.
+            weight_init (str, optional): Weight initialization strategy. See ``get_init_fn`` for valid options.
             depthwise_init (str, optional): Depthwise initialization strategy. The following options are valid:
                 'current' where the depth corresponds to the current layer index or 'global' where the total number
                 of layer is used as depth. If not set, no depthwise initialization strategy is used.
@@ -329,7 +329,6 @@ class LMModel(StreamingModule):
         for linear in self.linears:
             init_layer(linear, method=weight_init, init_depth=None, zero_bias_init=zero_bias_init)
 
-
     @property
     def special_token_id(self) -> int:
         return self.card
@@ -338,60 +337,24 @@ class LMModel(StreamingModule):
     def num_codebooks(self) -> int:
         return self.n_q
 
-    def compute_video_emb(self, video_tensor_list: tp.List, device: str) -> torch.Tensor:
-        assert isinstance(video_tensor_list, list)
-        assert self.if_add_gobal
-        assert len(video_tensor_list) == 2
-
-        [local_video_tensor, global_video_tensor] = video_tensor_list
-        local_image = local_video_tensor.to(dtype=torch.float32)
-        global_image = global_video_tensor.to(dtype=torch.float32)
-
-        local_batch_size, _, local_time_length, _, _ = local_image.size()
-        local_image = einops.rearrange(local_image, 'b c t h w -> (b t) c h w')
-
-        global_batch_size, _, global_time_length, _, _ = global_image.size()
-        global_image = einops.rearrange(global_image, 'b c t h w -> (b t) c h w')
-
-        local_temporal_transformer = self.local_temporal_transformer
-        global_temporal_transformer = self.global_temporal_transformer
-
-        local_video_inputs = self.processor(images=local_image.float(), return_tensors="pt")
-        local_pixel_values = local_video_inputs['pixel_values'].to(device)
-
-        global_video_inputs = self.processor(images=global_image.float(), return_tensors="pt")
-        global_pixel_values = global_video_inputs['pixel_values'].to(device)
-
-        if self.visual_encoder == 'clip':
-            with torch.no_grad():
-                local_video_hidden = self.visual_encoder_model(pixel_values=local_pixel_values).last_hidden_state
-            local_video_hidden += self.local_pos_embedding
-            local_video_hidden = local_temporal_transformer(local_video_hidden)
-            local_video_hidden = einops.rearrange(
-                local_video_hidden, '(b t) q h -> b (t q) h',
-                b=local_batch_size, t=local_time_length
-            )
-
-            with torch.no_grad():
-                global_video_hidden = self.visual_encoder_model(pixel_values=global_pixel_values).last_hidden_state
-            global_video_hidden += self.global_pos_embedding
-            global_video_hidden = global_temporal_transformer(global_video_hidden)
-            global_video_hidden = einops.rearrange(
-                global_video_hidden, '(b t) q h -> b (t q) h',
-                b=global_batch_size, t=global_time_length
-            )
-
-        video_hidden = self.multi_head_cross_attention(local_video_hidden, global_video_hidden)
-        video_emb = self.visual_feature_proj(video_hidden)
-
-        return video_emb
-
-
     def forward(self, sequence: torch.Tensor,
                 conditions: tp.List[ConditioningAttributes],
-                video_tensor_list: tp.List,
-                precomputed_video_emb: tp.Optional[torch.Tensor] = None  # 新增参数
-                ) -> torch.Tensor:
+                video_tensor_list: tp.List) -> torch.Tensor:
+        """Apply language model on sequence and conditions.
+        Given a tensor of sequence of shape [B, K, S] with K the number of codebooks and
+        S the sequence steps, return the logits with shape [B, card, K, S].
+
+        Args:
+            indices (torch.Tensor): Indices of the codes to model.
+            conditions (list of ConditioningAttributes): Conditions to use when modeling
+                the given codes. Note that when evaluating multiple time with the same conditioning
+                you should pre-compute those and pass them as `condition_tensors`.
+            # condition_tensors (dict[str, ConditionType], optional): Pre-computed conditioning
+            #     tensors, see `conditions`.
+            video_tensor (torch.Tensor): Indices of the video features [b c t h w].
+        Returns:
+            torch.Tensor: Logits.
+        """
 
         B, K, S = sequence.shape
         assert K == self.num_codebooks, "Sequence shape must match the specified number of codebooks"
@@ -399,16 +362,56 @@ class LMModel(StreamingModule):
         self.device = input_.device
         assert self.device != "cpu"
 
-        if precomputed_video_emb is None:
-            video_emb = self.compute_video_emb(video_tensor_list, device=self.device)
-        else:
-            video_emb = precomputed_video_emb
+        if self.visual_encoder=='clip':
+            visual_encoder_model = self.visual_encoder_model
+            processor = self.processor
+
+        assert isinstance(video_tensor_list, list)
+        
+        assert self.if_add_gobal
+        assert len(video_tensor_list)==2
+        
+        [local_video_tensor, global_video_tensor] = video_tensor_list
+        local_image = local_video_tensor.to(dtype=torch.float32)
+        global_image = global_video_tensor.to(dtype=torch.float32)
+        
+        local_batch_size,_,local_time_length,_,_ = local_image.size()
+        local_image = einops.rearrange(local_image, 'b c t h w -> (b t) c h w')
+
+        global_batch_size,_,global_time_length,_,_ = global_image.size()
+        global_image = einops.rearrange(global_image, 'b c t h w -> (b t) c h w')
+                        
+        local_temporal_transformer = self.local_temporal_transformer
+        global_temporal_transformer = self.global_temporal_transformer
+        
+        local_video_inputs = processor(images=local_image.float(), return_tensors="pt")
+        local_pixel_values = local_video_inputs['pixel_values'].to(self.device)
+
+        global_video_inputs = processor(images=global_image.float(), return_tensors="pt")
+        global_pixel_values = global_video_inputs['pixel_values'].to(self.device)
+
+        if self.visual_encoder=='clip':
+            with torch.no_grad():
+                local_video_hidden = visual_encoder_model(pixel_values=local_pixel_values).last_hidden_state
+            local_video_hidden += self.local_pos_embedding
+            local_video_hidden = local_temporal_transformer(local_video_hidden)
+            local_video_hidden = einops.rearrange(local_video_hidden, '(b t) q h -> b (t q) h',b=local_batch_size,t=local_time_length)
+            with torch.no_grad():
+                global_video_hidden = visual_encoder_model(pixel_values=global_pixel_values).last_hidden_state
+            global_video_hidden += self.global_pos_embedding
+            global_video_hidden = global_temporal_transformer(global_video_hidden)
+            global_video_hidden = einops.rearrange(global_video_hidden, '(b t) q h -> b (t q) h',b=global_batch_size,t=global_time_length)
+
+        assert local_batch_size==global_batch_size
+        video_hidden = self.multi_head_cross_attention(local_video_hidden, global_video_hidden)
+        video_emb = self.visual_feature_proj(video_hidden) 
 
         out = self.transformer(input_, cross_attention_src=video_emb)
         if self.out_norm:
             out = self.out_norm(out)
-        logits = torch.stack([self.linears[k](out) for k in range(K)], dim=1)
+        logits = torch.stack([self.linears[k](out) for k in range(K)], dim=1) 
 
+        # remove the prefix from the model outputs
         if len(self.fuser.fuse2cond['prepend']) > 0:
             logits = logits[:, :, -S:]
         return logits  # [B, K, S, card]
@@ -424,11 +427,11 @@ class LMModel(StreamingModule):
         Args:
             codes (torch.Tensor): Input codes of shape [B, K, T] with B the batch size,
                 K the number of codebooks and T the number of timesteps.
-            conditions (list of ConditioningAttributes): Conditions to use when modeling
+            conditions (list of ConditioningAttributes): conditionings to use when modeling
                 the given codes. Note that when evaluating multiple time with the same conditioning
-                you should pre-compute those and pass them as condition_tensors.
-            condition_tensors (dict[str, ConditionType], optional): Pre-computed conditioning
-                tensors, see conditions.
+                you should pre-compute those and pass them as `condition_tensors`.
+            condition_tensors (dict[str, ConditionType], optional): pre-computed conditioning
+                tensors, see `conditions`.
         Returns:
             LMOutput: Language model outputs
                 logits (torch.Tensor) of shape [B, K, T, card] corresponding to the provided codes,
@@ -441,7 +444,8 @@ class LMModel(StreamingModule):
         B, K, T = codes.shape
         codes = codes.contiguous()
         
-        assert isinstance(condition_tensors_list, list)
+        assert isinstance(condition_tensors_list,list)
+        # map codes [B, K, T] into pattern sequence [B, K, S] using special_token_id for masked tokens
         pattern = self.pattern_provider.get_pattern(T)
         sequence_codes, sequence_indexes, sequence_mask = pattern.build_pattern_sequence(
             codes, self.special_token_id, keep_only_valid_steps=True
@@ -450,8 +454,11 @@ class LMModel(StreamingModule):
         model = self if self._fsdp is None else self._fsdp
         logits = model(sequence_codes, conditions, condition_tensors_list)  # [B, K, S, card]
 
-
+        # apply model on pattern sequence
+        # map back the logits on pattern sequence to logits on original codes: [B, K, S, card] -> [B, K, T, card]
+        # and provide the corresponding mask over invalid positions of tokens
         logits = logits.permute(0, 3, 1, 2)  # [B, card, K, S]
+        # note: we use nans as special token to make it obvious if we feed unexpected logits
         logits, logits_indexes, logits_mask = pattern.revert_pattern_logits(
             logits, float('nan'), keep_only_valid_steps=True
         )
@@ -459,20 +466,16 @@ class LMModel(StreamingModule):
         logits_mask = logits_mask[None, :, :].expand(B, -1, -1)  # [K, T] -> [B, K, T]
         return LMOutput(logits, logits_mask)
 
-
-    def _sample_next_token(
-            self,
-            sequence: torch.Tensor,
-            cfg_conditions_list: tp.List,
-            unconditional_state: State,
-            use_sampling: bool = False,
-            temp: float = 1.0,
-            top_k: int = 0,
-            top_p: float = 0.0,
-            cfg_coef: tp.Optional[float] = None,
-            two_step_cfg: tp.Optional[bool] = None,
-            precomputed_video_emb: tp.Optional[torch.Tensor] = None  # 新增参数
-        ) -> torch.Tensor:
+    def _sample_next_token(self,
+                           sequence: torch.Tensor,
+                           cfg_conditions_list: tp.List,
+                           unconditional_state: State,
+                           use_sampling: bool = False,
+                           temp: float = 1.0,
+                           top_k: int = 0,
+                           top_p: float = 0.0,
+                           cfg_coef: tp.Optional[float] = None,
+                           two_step_cfg: tp.Optional[bool] = None) -> torch.Tensor:
         """Sample next token from the model given a sequence and a set of conditions. The model supports
         multiple sampling strategies (greedy sampling, softmax, top-k, top-p...).
 
@@ -486,7 +489,7 @@ class LMModel(StreamingModule):
             temp (float): Sampling temperature.
             top_k (int): K for "top-k" sampling.
             top_p (float): P for "top-p" sampling.
-            cfg_coef (float, optional): classifier free guidance coefficient.
+            cfg_coef (float, optional): classifier free guidance coefficient
         Returns:
             next_token (torch.Tensor): Next token tensor of shape [B, K, 1].
         """
@@ -495,11 +498,11 @@ class LMModel(StreamingModule):
         model = self if self._fsdp is None else self._fsdp
         two_step_cfg = self.two_step_cfg if two_step_cfg is None else two_step_cfg
 
-        assert isinstance(cfg_conditions_list, list)
-        assert len(cfg_conditions_list) == 2
-        local_cfg_conditions = cfg_conditions_list[0]
-        global_cfg_conditions = cfg_conditions_list[1]
+        assert isinstance(cfg_conditions_list,list)
 
+        assert len(cfg_conditions_list)==2
+        local_cfg_conditions=cfg_conditions_list[0]
+        global_cfg_conditions=cfg_conditions_list[1]
         if two_step_cfg and local_cfg_conditions != {}:
             assert isinstance(local_cfg_conditions, tuple), type(local_cfg_conditions)
             local_condition_tensors, local_null_condition_tensors = local_cfg_conditions
@@ -513,21 +516,16 @@ class LMModel(StreamingModule):
             self.set_streaming_state(state)
             logits = uncond_logits + (cond_logits - uncond_logits) * self.cfg_coef
         else:
-            local_condition_tensors = cfg_conditions_list[0].to(sequence.device)
-            global_condition_tensors = cfg_conditions_list[1].to(sequence.device)
+            local_condition_tensors = local_cfg_conditions
             sequence = torch.cat([sequence, sequence], dim=0)
-            
-            if precomputed_video_emb is None:
-                video_emb = self.compute_video_emb([cfg_conditions_list[0], cfg_conditions_list[1]], device=sequence.device)
-            else:
-                video_emb = precomputed_video_emb
+            local_condition_tensors = local_condition_tensors.to(sequence.device)
+
+            global_condition_tensors = global_cfg_conditions
+            global_condition_tensors = global_condition_tensors.to(sequence.device)
 
             all_logits = model(
                 sequence,
-                conditions=[], 
-                video_tensor_list=[],  
-                precomputed_video_emb=video_emb  
-            )
+                conditions=[], video_tensor_list=[local_condition_tensors, global_condition_tensors])
             cond_logits, uncond_logits = all_logits.split(B, dim=0)  # [B, K, T, card]
             logits = uncond_logits + (cond_logits - uncond_logits) * cfg_coef
 
@@ -546,7 +544,6 @@ class LMModel(StreamingModule):
         else:
             next_token = torch.argmax(logits, dim=-1, keepdim=True)
         return next_token
-
 
     @torch.no_grad()
     def generate(self,
@@ -586,11 +583,11 @@ class LMModel(StreamingModule):
         assert not self.training, "generation shouldn't be used in training mode."
         first_param = next(iter(self.parameters()))
         device = first_param.device
-        assert isinstance(conditions_list, list)
+        assert isinstance(conditions_list,list)
         
-        assert len(conditions_list) == 2
-        local_conditions = conditions_list[0]
-        global_conditions = conditions_list[1]
+        assert len(conditions_list)==2
+        local_conditions=conditions_list[0]
+        global_conditions=conditions_list[1]
         # Checking all input shapes are consistent.
         possible_num_samples = []
         if num_samples is not None:
@@ -605,13 +602,23 @@ class LMModel(StreamingModule):
         assert [x == possible_num_samples[0] for x in possible_num_samples], "Inconsistent inputs shapes"
         num_samples = possible_num_samples[0]
 
+        # below we create set of local_conditions: one conditional and one unconditional
+        # to do that we merge the regular condition together with the null condition
+        # we then do 1 forward pass instead of 2.
+        # the reason for that is two-fold:
+        # 1. it is about x2 faster than doing 2 forward passes
+        # 2. avoid the streaming API treating the 2 passes as part of different time steps
+        # We also support doing two different passes, in particular to ensure that
+        # the padding structure is exactly the same between train and test.
+        # With a batch size of 1, this can be slower though.
         local_cfg_conditions: CFGConditions
         global_cfg_conditions: CFGConditions
         two_step_cfg = self.two_step_cfg if two_step_cfg is None else two_step_cfg
         local_null_conditions = ClassifierFreeGuidanceDropout(p=1.0)(local_conditions)
-        local_cfg_conditions = torch.cat((local_conditions, local_null_conditions), dim=0)
+        local_cfg_conditions = torch.cat((local_conditions,local_null_conditions), dim=0)
+
         global_null_conditions = ClassifierFreeGuidanceDropout(p=1.0)(global_conditions)
-        global_cfg_conditions = torch.cat((global_conditions, global_null_conditions), dim=0)
+        global_cfg_conditions = torch.cat((global_conditions,global_null_conditions), dim=0)
 
         if prompt is None:
             assert num_samples > 0
@@ -625,61 +632,67 @@ class LMModel(StreamingModule):
         # this token is used as default value for codes that are not generated yet
         unknown_token = -1
 
-
+        # we generate codes up to the max_gen_len that will be mapped to the pattern sequence
         gen_codes = torch.full((B, K, max_gen_len), unknown_token, dtype=torch.long, device=device)
+        # filling the gen_codes with the prompt if needed
         gen_codes[..., :start_offset] = prompt
+        # create the gen_sequence with proper interleaving from the pattern: [B, K, S]
         gen_sequence, indexes, mask = pattern.build_pattern_sequence(gen_codes, self.special_token_id)
+        # retrieve the start_offset in the sequence:
+        # it is the first sequence step that contains the `start_offset` timestep
         start_offset_sequence = pattern.get_first_step_with_timesteps(start_offset)
         assert start_offset_sequence is not None
-
-        video_emb = self.compute_video_emb([local_cfg_conditions, global_cfg_conditions], device=device)
 
         with self.streaming():
             unconditional_state = self.get_streaming_state()
             prev_offset = 0
-            gen_sequence_len = gen_sequence.shape[-1]
-
+            gen_sequence_len = gen_sequence.shape[-1]  # gen_sequence shape is [B, K, S]
+            
             for offset in range(start_offset_sequence, gen_sequence_len):
+                # get current sequence (note that the streaming API is providing the caching over previous offsets)
                 curr_sequence = gen_sequence[..., prev_offset:offset]
                 curr_mask = mask[None, ..., prev_offset:offset].expand(B, -1, -1)
                 if check:
+                    # check coherence between mask and sequence
                     assert (curr_sequence == torch.where(curr_mask, curr_sequence, self.special_token_id)).all()
+                    # should never happen as gen_sequence is filled progressively
                     assert not (curr_sequence == unknown_token).any()
+                # sample next token from the model, next token shape is [B, K, 1]
                 next_token = self._sample_next_token(
-                    curr_sequence, 
-                    [local_cfg_conditions, global_cfg_conditions], 
-                    unconditional_state, 
-                    use_sampling, 
-                    temp, 
-                    top_k, 
-                    top_p,
-                    cfg_coef=cfg_coef, 
-                    two_step_cfg=two_step_cfg,
-                    precomputed_video_emb=video_emb  # 
-                )
+                    curr_sequence, [local_cfg_conditions, global_cfg_conditions], unconditional_state, use_sampling, temp, top_k, top_p,
+                    cfg_coef=cfg_coef, two_step_cfg=two_step_cfg)
+                # ensure the tokens that should be masked are properly set to special_token_id
+                # as the model never output special_token_id
                 valid_mask = mask[..., offset:offset+1].expand(B, -1, -1)
                 next_token[~valid_mask] = self.special_token_id
+                # ensure we don't overwrite prompt tokens, we only write over unknown tokens
+                # (then mask tokens should be left as is as well, which is correct)
                 gen_sequence[..., offset:offset+1] = torch.where(
                     gen_sequence[..., offset:offset+1] == unknown_token,
-                    next_token, 
-                    gen_sequence[..., offset:offset+1]
+                    next_token, gen_sequence[..., offset:offset+1]
                 )
                 prev_offset = offset
                 if callback is not None:
                     callback(1 + offset - start_offset_sequence, gen_sequence_len - start_offset_sequence)
-
+    
         unconditional_state.clear()
+        # ensure sequence has been entirely filled
         assert not (gen_sequence == unknown_token).any()
+        # ensure gen_sequence pattern and mask are matching
+        # which means the gen_sequence is valid according to the pattern
         assert (
             gen_sequence == torch.where(mask[None, ...].expand(B, -1, -1), gen_sequence, self.special_token_id)
         ).all()
+        # get back the codes, trimming the prompt if needed and cutting potentially incomplete timesteps
         out_codes, out_indexes, out_mask = pattern.revert_pattern_sequence(gen_sequence, special_token=unknown_token)
 
+        # sanity checks over the returned codes and corresponding masks
         assert (out_codes[..., :max_gen_len] != unknown_token).all()
         assert (out_mask[..., :max_gen_len] == 1).all()
 
         out_start_offset = start_offset if remove_prompts else 0
         out_codes = out_codes[..., out_start_offset:max_gen_len]
 
+        # ensure the returned codes are all valid
         assert (out_codes >= 0).all() and (out_codes <= self.card).all()
         return out_codes
