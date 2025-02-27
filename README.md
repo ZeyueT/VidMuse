@@ -40,13 +40,7 @@ Furthermore, we propose VidMuse, a simple framework for generating music aligned
   ```bash
   conda create -n VidMuse python=3.9
   conda activate VidMuse
-  conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=12.1 -c pytorch -c nvidia
-  python -m pip install -U audiocraft
-  ```
-- Install other requirements:
-  
-  ```bash
-  pip install -r requirements.txt
+  pip install git+https://github.com/ZeyueT/VidMuse.git
   ```
 - Install ffmpeg:
   
