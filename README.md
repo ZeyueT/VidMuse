@@ -8,7 +8,8 @@
 
 ## 📺 Demo Video
 
-[![Watch the video](https://github.com/user-attachments/assets/712a81bb-ca4a-4c5f-b99e-b9ecf8fc64a3)](https://www.youtube.com/watch?v=DbZbzcVI6qg)
+[![Watch the video](https://github.com/user-attachments/assets/54107f99-2399-49ea-aa8e-131b7170d617)](https://www.youtube.com/watch?v=DbZbzcVI6qg)
+
 
 
 ## ✨ Abstract
