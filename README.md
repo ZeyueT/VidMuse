@@ -26,8 +26,9 @@ Furthermore, we propose VidMuse, a simple framework for generating music aligned
 ## ✨ Method
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/ed0c4c55-1c62-4389-9200-a5dc4e8041b9" alt="method">
+  <img src="https://github.com/user-attachments/assets/cd0444cc-dfc9-4498-b082-8c853ec2aa06" alt="method">
 </p>
+
 
 
 <p align="center"><strong>Overview of the VidMuse Framework.</strong></p>
