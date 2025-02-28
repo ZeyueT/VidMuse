@@ -26,17 +26,7 @@ _HF_MODEL_CHECKPOINTS_MAP = {
 }
 
 
-class MusicGen:
-    """MusicGen main model with convenient generation API.
-
-    Args:
-        name (str): name of the model.
-        compression_model (CompressionModel): Compression model
-            used to map audio to invertible discrete representations.
-        lm (LMModel): Language model over discrete representations.
-        max_duration (float, optional): maximum duration the model can produce,
-            otherwise, inferred from the training params.
-    """
+class VidMuse:
     def __init__(self, name: str, compression_model: CompressionModel, lm: LMModel,
                  max_duration: tp.Optional[float] = None):
         self.name = name

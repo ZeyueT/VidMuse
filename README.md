@@ -1,12 +1,14 @@
 # VidMuse: A Simple Video-to-Music Generation Framework with Long-Short-Term Modeling 🎶
 
+**This project has been accepted to CVPR 2025! 🚀🚀🚀**
+
 [![arXiv](https://img.shields.io/badge/arXiv-2406.04321-brightgreen.svg?style=flat-square)](https://arxiv.org/pdf/2406.04321)   [![githubio](https://img.shields.io/badge/GitHub.io-Project-blue?logo=Github&style=flat-square)](https://vidmuse.github.io/)
 
 **This is the official repository for "[VidMuse: A Simple Video-to-Music Generation Framework with Long-Short-Term Modeling](https://arxiv.org/pdf/2406.04321)".**
 
 ## 📺 Demo Video
 
-[![Watch the video](https://github.com/user-attachments/assets/712a81bb-ca4a-4c5f-b99e-b9ecf8fc64a3)](https://www.youtube.com/watch?v=8mrr3cZ1ItY)
+[![Watch the video](https://github.com/user-attachments/assets/712a81bb-ca4a-4c5f-b99e-b9ecf8fc64a3)](https://www.youtube.com/watch?v=DbZbzcVI6qg)
 
 
 ## ✨ Abstract

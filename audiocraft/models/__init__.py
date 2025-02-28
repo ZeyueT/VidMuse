@@ -14,5 +14,5 @@ from .encodec import (
 from .audiogen import AudioGen
 from .lm import LMModel
 from .multibanddiffusion import MultiBandDiffusion
-from .musicgen import MusicGen
+from .vidmuse import VidMuse
 from .unet import DiffusionUnet
