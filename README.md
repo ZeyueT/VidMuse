@@ -15,7 +15,7 @@
 ## ✨ Abstract
 
 In this work, we systematically study music generation conditioned solely on the video.
-First, we present the large-scale dataset V2M, which comprises 190K video-music pairs and includes various genres such as movie trailers, advertisements, and documentaries.
+First, we present the large-scale dataset V2M, which comprises 360K video-music pairs and includes various genres such as movie trailers, advertisements, and documentaries.
 Furthermore, we propose VidMuse, a simple framework for generating music aligned with video inputs. VidMuse stands out by producing high-fidelity music that is both acoustically and semantically aligned with the video. By incorporating local and global visual cues, VidMuse enables the creation of musically coherent audio tracks that consistently match the video content through Long-Short-Term modeling. Through extensive experiments, VidMuse outperforms existing models in terms of audio quality, diversity, and audio-visual alignment.
 
 ## ✨ Data Construction
