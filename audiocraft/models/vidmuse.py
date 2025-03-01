@@ -100,7 +100,7 @@ class VidMuse:
             # used only for unit tests
             compression_model = get_debug_compression_model(device)
             lm = get_debug_lm_model(device)
-            return MusicGen(name, compression_model, lm, max_duration=30)
+            return VidMuse(name, compression_model, lm, max_duration=30)
 
         if name in _HF_MODEL_CHECKPOINTS_MAP:
             # warnings.warn(
@@ -113,7 +113,7 @@ class VidMuse:
         if 'self_wav' in lm.condition_provider.conditioners:
             lm.condition_provider.conditioners['self_wav'].match_len_on_eval = True
             lm.condition_provider.conditioners['self_wav']._use_masking = False
-        return MusicGen(name, compression_model, lm, max_duration=30)
+        return VidMuse(name, compression_model, lm, max_duration=30)
 
     def set_generation_params(self, use_sampling: bool = True, top_k: int = 250,
                               top_p: float = 0.0, temperature: float = 1.0,
