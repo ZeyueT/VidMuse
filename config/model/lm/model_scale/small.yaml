@@ -1,8 +1,0 @@
-# @package _global_
-
-# 300M Param.
-
-transformer_lm:
-  dim: 1024
-  num_heads: 16
-  num_layers: 24

@@ -1,7 +1,0 @@
-# @package _global_
-
-# gpt2 like (~1.5B params)
-transformer_lm:
-  dim: 1536
-  num_heads: 24
-  num_layers: 48
