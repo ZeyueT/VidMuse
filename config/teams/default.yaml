@@ -1,0 +1,12 @@
+default:
+  dora_dir: ./output/VidMuse
+  partitions:
+    global: debug
+    team: debug
+  reference_dir: ./output
+darwin:  # if we detect we are on a Mac, then most likely we are doing unit testing etc.
+  dora_dir: ./output/VidMuse
+  partitions:
+    global: debug
+    team: debug
+  reference_dir: ./output
