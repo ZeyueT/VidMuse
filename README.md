@@ -2,7 +2,7 @@
 
 **This project has been accepted to CVPR 2025! 🚀🚀🚀**
 
-[![arXiv](https://img.shields.io/badge/arXiv-2406.04321-brightgreen.svg?style=flat-square)](https://arxiv.org/pdf/2406.04321)   [![githubio](https://img.shields.io/badge/GitHub.io-Project-blue?logo=Github&style=flat-square)](https://vidmuse.github.io/)
+[![arXiv](https://img.shields.io/badge/arXiv-2406.04321-brightgreen.svg?style=flat-square)](https://arxiv.org/pdf/2406.04321)   [![githubio](https://img.shields.io/badge/GitHub.io-Project-blue?logo=Github&style=flat-square)](https://vidmuse.github.io/) [![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-blue)](https://huggingface.co/HKUSTAudio/VidMuse)
 
 **This is the official repository for "[VidMuse: A Simple Video-to-Music Generation Framework with Long-Short-Term Modeling](https://arxiv.org/pdf/2406.04321)".**
 
@@ -57,7 +57,7 @@ Furthermore, we propose VidMuse, a simple framework for generating music aligned
 
 ## 🔮 Pretrained Weights
 
-- Please download the pretrained Audio Compression checkpoint [compression_state_dict.bin](https://drive.google.com/file/d/1o1JznkelMiGizV5RhPIamsi5d5VBs4G_/view?usp=sharing) and VidMuse model checkpoint [state_dict.bin](https://drive.google.com/file/d/1RfVrg3d_UFKL2we8JaVqcnhK4P6TIe_9/view?usp=sharing), put them into the directory `'./model'`. (The VidMuse model is trained with our private dataset.)
+- Please download the pretrained Audio Compression checkpoint [compression_state_dict.bin](https://huggingface.co/HKUSTAudio/VidMuse/blob/main/compression_state_dict.bin) and VidMuse model checkpoint [state_dict.bin](https://huggingface.co/HKUSTAudio/VidMuse/blob/main/state_dict.bin), put them into the directory `'./model'`. (The VidMuse model is trained with our private dataset.)
   ```bash
   mkdir model
   mv compression_state_dict.bin ./model
@@ -110,7 +110,11 @@ Furthermore, we propose VidMuse, a simple framework for generating music aligned
 
 ## 🎯 Infer
 
-- Before running the inference script, make sure to define the following parameters in `infer.sh`:
+- **Quick Start with Hugging Face:**
+  You can quickly start inference using the Hugging Face model hub. Refer to the [VidMuse on Hugging Face](https://huggingface.co/HKUSTAudio/VidMuse) for detailed instructions.
+
+- **Local Inference:**
+  Before running the inference script, make sure to define the following parameters in `infer.sh`:
   - `model_path`: Path to the model directory. This is where the model files are stored. Default is `'./model'`.
   - `video_dir`: Directory containing the videos for inference. This is where the input videos are located. Default is `'./dataset/example/infer'`.
   - `output_dir`: Directory where the output generated music will be saved. Default is `'./result/'`.
@@ -123,7 +127,8 @@ Furthermore, we propose VidMuse, a simple framework for generating music aligned
 
 ## 🧱 Dataset & Dataset Construction
 
-- To be released...
+- The dataset has been released on [Hugging Face](https://huggingface.co/datasets/HKUSTAudio/VidMuse-V2M-Dataset).
+- Data construction details to be released...
 
 ## 🤗 Acknowledgement
 
