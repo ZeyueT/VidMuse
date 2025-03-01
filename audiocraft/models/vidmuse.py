@@ -118,7 +118,7 @@ class VidMuse:
     def set_generation_params(self, use_sampling: bool = True, top_k: int = 250,
                               top_p: float = 0.0, temperature: float = 1.0,
                               duration: float = 30.0, cfg_coef: float = 3.0,
-                              two_step_cfg: bool = False, extend_stride: float = 19.5):
+                              two_step_cfg: bool = False, extend_stride: float = 29.5):
         """Set the generation parameters for MusicGen.
 
         Args:
