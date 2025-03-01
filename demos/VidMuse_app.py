@@ -17,7 +17,7 @@ import gradio as gr
 from audiocraft.data.audio_utils import convert_audio
 from audiocraft.data.audio import audio_write
 from audiocraft.models.encodec import InterleaveStereoCompressionModel
-from audiocraft.models import MusicGen, MultiBandDiffusion
+from audiocraft.models import VidMuse, MultiBandDiffusion
 
 from moviepy.editor import VideoFileClip
 import decord
@@ -92,7 +92,7 @@ def load_model(version='facebook/musicgen-melody'):
         del MODEL
         torch.cuda.empty_cache()
         MODEL = None  # in case loading would crash
-        MODEL = MusicGen.get_pretrained(version)
+        MODEL = VidMuse.get_pretrained(version)
 
 
 def get_video_duration(video_path):
