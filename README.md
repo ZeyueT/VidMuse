@@ -59,9 +59,10 @@ Furthermore, we propose VidMuse, a simple framework for generating music aligned
 
 - Please download the pretrained Audio Compression checkpoint [compression_state_dict.bin](https://huggingface.co/HKUSTAudio/VidMuse/blob/main/compression_state_dict.bin) and VidMuse model checkpoint [state_dict.bin](https://huggingface.co/HKUSTAudio/VidMuse/blob/main/state_dict.bin), put them into the directory `'./model'`. (The VidMuse model is trained with our private dataset.)
   ```bash
-  mkdir model
-  mv compression_state_dict.bin ./model
-  mv state_dict.bin ./model
+  mkdir -p model
+  wget https://huggingface.co/HKUSTAudio/VidMuse/resolve/main/compression_state_dict.bin -O model/compression_state_dict.bin
+  wget https://huggingface.co/HKUSTAudio/VidMuse/resolve/main/state_dict.bin -O model/state_dict.bin
+
   ```
 
 ## 🎞 Web APP
