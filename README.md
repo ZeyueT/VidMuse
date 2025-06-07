@@ -140,11 +140,12 @@ Furthermore, we propose VidMuse, a simple framework for generating music aligned
 If you find our work useful, please consider citing:
 
 ```
-@article{tian2024vidmuse,
+@inproceedings{tian2025vidmuse,
   title={Vidmuse: A simple video-to-music generation framework with long-short-term modeling},
   author={Tian, Zeyue and Liu, Zhaoyang and Yuan, Ruibin and Pan, Jiahao and Liu, Qifeng and Tan, Xu and Chen, Qifeng and Xue, Wei and Guo, Yike},
-  journal={arXiv preprint arXiv:2406.04321},
-  year={2024}
+  booktitle={Proceedings of the Computer Vision and Pattern Recognition Conference},
+  pages={18782--18793},
+  year={2025}
 }
 ```
 
